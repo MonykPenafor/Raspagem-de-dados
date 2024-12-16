@@ -37,9 +37,6 @@ build/
 dist/
 *.egg-info/
 
-# Ignore executables
-.exe
-
 # Ignore specific test files
 html.html
 zteste.py
