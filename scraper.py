@@ -116,6 +116,7 @@ chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--disable-software-rasterizer")
 chrome_options.add_argument('--disable-features=DefaultPassthroughCommandDecoder')
 
+
 def main():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -126,18 +127,19 @@ def main():
 
     try:
         divs = wait_for_elements(driver, 10, By.CLASS_NAME, 'details.shiv-border-box-sizing')
-
         for div in divs:
             try:
                 # Navigate to link
-                link = div.find_element(By.XPATH, './*')
+                link = div.find_element(By.CSS_SELECTOR, 'a')
+                logging.info(f"Acessing: {link.text}")                
                 link.click()
-                logging.info("Navigated to detail page:", link.text)
+                logging.info("Navigated to detail page")
 
                 # Extract series and level
-                series = wait_for_element(driver, 10, By.XPATH, '//span[@class="primary"]/a').text
-                level = driver.find_element(By.XPATH, '//span[@class="secondary"]').text
-
+                series = wait_for_element(driver, 10, By.CLASS_NAME, 'content-column.stat.series').find_element(By.CLASS_NAME, 'primary').text
+                level = driver.find_element(By.CLASS_NAME, 'content-column.stat.level').find_element(By.CLASS_NAME, 'primary').text
+                proficiency = convert_proficiency_level(level)
+                
                 # Extract items
                 items = driver.find_elements(By.CLASS_NAME, 'item')
 
@@ -154,14 +156,14 @@ def main():
                         t = item_details.find_elements(By.CLASS_NAME, 'transliteration')
                         if t:
                             transliteration = t[0].text
-
+                            
                         data = {
                             'source_language': source_language,
                             'target_language': series,
                             'category': voc_type,
                             'word_source': translation,
                             'word_target': f"{vocabulary} {transliteration}",
-                            'proficiency': convert_proficiency_level(level)
+                            'proficiency': proficiency
 
                         }
 
@@ -183,7 +185,7 @@ def main():
                         else:
                             save_flashcard(cursor, data, id_user)
                     except Exception as e:
-                        logging.error(f"Error processing item: {e}")
+                        logging.error(f"Error processing item")
 
                 conn.commit()
                 logging.info("Transaction committed.")
@@ -191,7 +193,7 @@ def main():
 
             except Exception as e:
                 conn.rollback()
-                logging.error(f"Error processing div: {e}")
+                logging.error(f"Error processing div")
                 try:
                     driver.back()
                 except Exception:
