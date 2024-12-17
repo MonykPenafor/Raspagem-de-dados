@@ -1,4 +1,5 @@
 import pyodbc
+import json
 from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -37,6 +38,9 @@ def get_db_connection():
         raise
 
 # Save flashcard data to the database
+failed_items = []
+
+
 def save_flashcard(cursor, data, id_user):
     try:
         cursor.execute(
@@ -74,6 +78,15 @@ def save_flashcard(cursor, data, id_user):
         logging.info("Flashcard saved successfully.")
     except Exception as e:
         logging.error(f"Error saving flashcard: {e}")
+        
+        data['error_message'] = str(e)
+        
+        failed_items.append(data)
+
+        with open('failed_items.json', 'w', encoding='utf-8') as f:
+            json.dump(failed_items, f, ensure_ascii=False, indent=4)
+        logging.info("Error details saved to 'failed_items.json'")
+        
         raise
 
 # Selenium helpers
@@ -129,6 +142,7 @@ def main():
         divs = wait_for_elements(driver, 10, By.CLASS_NAME, 'details.shiv-border-box-sizing')
         for div in divs:
             try:
+                
                 # Navigate to link
                 link = div.find_element(By.CSS_SELECTOR, 'a')
                 logging.info(f"Acessing: {link.text}")                
@@ -190,10 +204,11 @@ def main():
                 conn.commit()
                 logging.info("Transaction committed.")
                 driver.back()
+                logging.info("going back.")
 
             except Exception as e:
                 conn.rollback()
-                logging.error(f"Error processing div")
+                logging.error(f"Error processing div: {e}")
                 try:
                     driver.back()
                 except Exception:
