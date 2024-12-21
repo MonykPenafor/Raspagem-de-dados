@@ -42,7 +42,7 @@ For additional context, the repository includes HTML reference files, which show
 
 ## 🗂️ Repository Contents
 - scraper.py: Main script for scraping and saving data.
-- failed_items.json: Configuration for logging setup.
+- failed_items.json: Log of failed items for troubleshooting.
 - HTML Reference Files: Examples of website structure used during scraping.
 
 ## 🌟 Additional Information
